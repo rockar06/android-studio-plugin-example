@@ -1,7 +1,9 @@
+import org.jetbrains.intellij.platform.gradle.Constants
+
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.25"
-    id("org.jetbrains.intellij") version "1.17.4"
+    id("org.jetbrains.kotlin.jvm") version "2.0.21"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
 }
 
 group = "com.example"
@@ -9,15 +11,25 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellij {
-  version.set("2024.3.2")
-  type.set("IC") // Target IDE Platform
-
-  plugins.set(listOf())
+dependencies {
+    intellijPlatform {
+        //bundledPlugin("org.jetbrains.android")
+        bundledPlugin("org.jetbrains.android")
+        instrumentationTools()
+        //androidStudio("2024.3.1.2")
+        local(file("/Applications/Android Studio.app"))
+        /*if (project.hasProperty("localIdeOverride")) {
+            local(property("localIdeOverride").toString())
+        } else {
+            androidStudio("2024.2.2.13")
+        }*/
+    }
+    testImplementation("junit:junit:4.13.2")
 }
 
 tasks {
@@ -43,5 +55,14 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
+    }
+}
+
+// Workaround to exclude performancePlugin to compile
+// See https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1738
+// See https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1843
+configurations {
+    named(Constants.Configurations.INTELLIJ_PLATFORM_BUNDLED_MODULES) {
+        exclude(Constants.Configurations.Dependencies.BUNDLED_MODULE_GROUP, "com.jetbrains.performancePlugin")
     }
 }
