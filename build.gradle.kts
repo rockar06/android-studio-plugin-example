@@ -1,11 +1,7 @@
-import org.jetbrains.intellij.platform.gradle.Constants
-
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.0.21"
-    id("org.jetbrains.intellij.platform") version "2.1.0"
-    // When updating the platform to 2.2.1, we need to specify the Android plugin instead of using "bundledPlugin" option
-    // id("org.jetbrains.intellij.platform") version "2.2.1"
+    id("org.jetbrains.intellij.platform") version "2.2.1"
 }
 
 group = "com.example"
@@ -20,28 +16,19 @@ repositories {
 
 dependencies {
     intellijPlatform {
+        // We can use a local installation using "local" or a downloaded binary using "androidStudio"
         // Android Studio Version, more https://plugins.jetbrains.com/docs/intellij/android-studio-releases-list.html#2024
-        //androidStudio("2024.3.1.2")
-
+        // androidStudio("2024.3.1.13")
         // Local installed version from Android Studio
         local(file("/Applications/Android Studio.app"))
-        /*if (project.hasProperty("localIdeOverride")) {
-            local(property("localIdeOverride").toString())
-        } else {
-            androidStudio("2024.2.2.13")
-        }*/
-
-        // Use a bundled plugin, in this case, the "android" plugin is bundled in the Android Studio
-        // Check Settings > Plugins > Installed > Search for "android" view the label "bundled"
-        bundledPlugin("org.jetbrains.android")
-
         // Plugin version from Intellij Marketplace https://plugins.jetbrains.com/plugin/22989-android, specify only if
         // targeting a non Android Studio IDE
-        //plugin("org.jetbrains.android:243.24978.46")
-        //plugin("org.jetbrains.android:242.22855.74")
-
-        // Require when targeting platform plugin below to 2.2.1
-        instrumentationTools()
+        // IMPORTANT: Plugin versions must not be higher than the Android Studio version.
+        // Examples:
+        // - Plugin 243.21565.214 (IntelliJ "2024.3") is compatible with Android Studio "2024.3.1.13".
+        // - Plugin 243.22562.59 (IntelliJ "2024.3.1 — 2024.3.4.1") is too high for Android Studio "2024.3.1.13"
+        //   and will cause errors.
+        plugin("org.jetbrains.android:243.21565.214")
     }
     testImplementation("junit:junit:4.13.2")
 }
@@ -69,14 +56,5 @@ tasks {
 
     publishPlugin {
         token.set(System.getenv("PUBLISH_TOKEN"))
-    }
-}
-
-// Workaround to exclude performancePlugin to compile
-// See https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1738
-// See https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1843
-configurations {
-    named(Constants.Configurations.INTELLIJ_PLATFORM_BUNDLED_MODULES) {
-        exclude(Constants.Configurations.Dependencies.BUNDLED_MODULE_GROUP, "com.jetbrains.performancePlugin")
     }
 }
